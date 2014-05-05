@@ -89,7 +89,7 @@ public class Configurator {
 				fld);
 		try {
 			fld.set(cfgStorage, cfg.get(ann.category(), ann.value(),
-					an.value(), ann.comment()));
+					an.value(), ann.comment()).getStringList());
 		} catch (IllegalArgumentException e) {
 			AutoMod.log
 					.warn("Caught an IllegalArgumentException while setting field "
@@ -114,7 +114,7 @@ public class Configurator {
 				fld);
 		try {
 			fld.set(cfgStorage, cfg.get(ann.category(), ann.value(),
-					an.value(), ann.comment()));
+					an.value(), ann.comment()).getIntList());
 		} catch (IllegalArgumentException e) {
 			AutoMod.log
 					.warn("Caught an IllegalArgumentException while setting field "
@@ -139,7 +139,7 @@ public class Configurator {
 				fld);
 		try {
 			fld.set(cfgStorage, cfg.get(ann.category(), ann.value(),
-					an.value(), ann.comment()));
+					an.value(), ann.comment()).getInt(an.value()));
 		} catch (IllegalArgumentException e) {
 			AutoMod.log
 					.warn("Caught an IllegalArgumentException while setting field "
@@ -164,7 +164,7 @@ public class Configurator {
 				fld);
 		try {
 			fld.set(cfgStorage, cfg.get(ann.category(), ann.value(),
-					an.value(), ann.comment()));
+					an.value(), ann.comment()).getDoubleList());
 		} catch (IllegalArgumentException e) {
 			AutoMod.log
 					.warn("Caught an IllegalArgumentException while setting field "
@@ -189,7 +189,7 @@ public class Configurator {
 				fld);
 		try {
 			fld.set(cfgStorage, cfg.get(ann.category(), ann.value(),
-					an.value(), ann.comment()));
+					an.value(), ann.comment()).getDouble(an.value()));
 		} catch (IllegalArgumentException e) {
 			AutoMod.log
 					.warn("Caught an IllegalArgumentException while setting field "
@@ -214,7 +214,7 @@ public class Configurator {
 				fld);
 		try {
 			fld.set(cfgStorage, cfg.get(ann.category(), ann.value(),
-					an.value(), ann.comment()));
+					an.value(), ann.comment()).getBooleanList());
 		} catch (IllegalArgumentException e) {
 			AutoMod.log
 					.warn("Caught an IllegalArgumentException while setting field "
@@ -239,7 +239,7 @@ public class Configurator {
 				fld);
 		try {
 			fld.set(cfgStorage, cfg.get(ann.category(), ann.value(),
-					an.value(), ann.comment()));
+					an.value(), ann.comment()).getBoolean(an.value()));
 		} catch (IllegalArgumentException e) {
 			AutoMod.log
 					.warn("Caught an IllegalArgumentException while setting field "
@@ -263,7 +263,7 @@ public class Configurator {
 				fld);
 		try {
 			fld.set(cfgStorage, cfg.get(ann.category(), ann.value(),
-					ann.defaultValue(), ann.comment()));
+					ann.defaultValue(), ann.comment()).getString());
 		} catch (IllegalArgumentException e) {
 			AutoMod.log
 					.warn("Caught an IllegalArgumentException while setting field "

@@ -1,6 +1,7 @@
 package com.bjculk.automod;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +18,7 @@ import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(modid="com.bjculk.automod", version="1", name="Autoconfig mod",
@@ -30,6 +32,10 @@ public class AutoMod {
 		log = piev.getModLog();
 		// Set default dir for autoconfig'd mods
 		autoCfgDir = piev.getModConfigurationDirectory();
+	}
+
+	@EventHandler
+	public void run(FMLInitializationEvent iev) {
 		// Do scan for tagged mods
 		modList = Loader.instance().getModList();
 		List<ModContainer> taggedMods = checkMods(modList);
@@ -38,12 +44,15 @@ public class AutoMod {
 			processMod(mc);
 		}
 	}
-
+	
 	private List<ModContainer> checkMods(List<ModContainer> modList2) {
 		List<ModContainer> tagged = new LinkedList<ModContainer>();
 		for (ModContainer mod : modList2) {
-			if(mod.getMod().getClass().isAnnotationPresent(Autoscan.class)) {
-				tagged.add(mod);
+			if(mod.getMod() != null) {
+				if(mod.getMod().getClass().isAnnotationPresent(Autoscan.class)) {
+					tagged.add(mod);
+					log.info("Tagged mod: " + mod.getModId());
+				}
 			}
 		}
 		return tagged;
@@ -51,7 +60,7 @@ public class AutoMod {
 
 	private void processMod(ModContainer mod) {
 		List<String> canAutoConfigure = canAutoConfigure(mod.getMod());
-		if(canAutoConfigure.isEmpty()) {
+		if(!canAutoConfigure.isEmpty()) {
 			for (String fld : canAutoConfigure) {
 				autoConfigure(mod, fld);
 			}
@@ -59,17 +68,31 @@ public class AutoMod {
 	}
 
 	private void autoConfigure(ModContainer mod, String fld) {
-		Configuration cfg = new Configuration(new File(autoCfgDir, mod.getModId()));
+		Configuration cfg = new Configuration(new File(autoCfgDir, mod.getModId() + ".cfg"));
 		Object cfgStorage;
 		try {
-			cfgStorage = mod.getMod().getClass().getDeclaredField(fld);
+			cfg.load();
+			Field field = mod.getMod().getClass().getDeclaredField(fld);
+			field.setAccessible(true);
+			cfgStorage = field.get(mod.getMod());
 			Configurator.doConfigure(cfg, cfgStorage);
+			cfg.save();
 		} catch (NoSuchFieldException e) {
-			log.debug("Couldn't find field " + fld +" that was detected in mod " + mod.getModId()
-					+". Something has gone wrong");
+			log.info("Couldn't find field " + fld + " for mod " + mod.getModId()
+					+". It will be ignored");
 			log.catching(Level.DEBUG, e);
 		} catch (SecurityException e) {
 			log.fatal("Got SecurityException while reflecting on field " + fld + " for mod " + mod.getModId()
+					+ ". Bailing out now");
+			log.catching(Level.FATAL, e);
+			return;
+		} catch (IllegalArgumentException e) {
+			log.fatal("Got IllegalArgumentException while reflecting on field " + fld + " for mod " + mod.getModId()
+					+ ". Bailing out now");
+			log.catching(Level.FATAL, e);
+			return;
+		} catch (IllegalAccessException e) {
+			log.fatal("Got IllegalAccessException while reflecting on field " + fld + " for mod " + mod.getModId()
 					+ ". Bailing out now");
 			log.catching(Level.FATAL, e);
 			return;
@@ -80,6 +103,7 @@ public class AutoMod {
 		List<String> flds = new LinkedList<String>();
 		for (Field fld : mod.getClass().getDeclaredFields()) {
 			if(fld.isAnnotationPresent(AutoConfigure.class)) {
+				log.info("Tagged field " + getClassifiedFieldName(mod, fld));
 				flds.add(fld.getName());
 			}
 		}
@@ -88,5 +112,12 @@ public class AutoMod {
 	
 	public static String getClassifiedFieldName(Object obj, Field fld) {
 		return obj.getClass().getName() + "#" + fld.getName();
+	}
+	
+	private static void listAnnotations(Class cls) {
+		log.info("Processing class: " + cls.getName());
+		for (Annotation ano : cls.getAnnotations()) {
+			log.info(ano.toString() + "\n");
+		}
 	}
 }
